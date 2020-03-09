@@ -20,29 +20,24 @@ export class OktaAuthService implements CanActivate {
     pkce: true
   });
 
-  async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
 
-    console.log('start canActivate check')
-    const isAuthenticated = await this.oktaAuth.tokenManager.get('accessToken');
-    if (isAuthenticated) {
-      console.log('isAuthenticated: ', isAuthenticated);
-      const getIdTokenData = this.oktaAuth.tokenManager.get('idToken')
-        .then(idToken => {
-          console.log('idToken: ', idToken);
-          const expirationDate = new Date((idToken.expiresAt * 1000));
-          console.log('idToken expiresAt: ', expirationDate);
-        })
-        .catch(error => console.log('error: ', error));
-      this.checkExpired();
-      return true;
-    }
-    else {
-      this.writeTokens();
-    }
-    return false;
+    return this.oktaAuth.tokenManager.get('idToken')
+      .then(idToken => {
+        console.log('idToken: ', idToken);
+        const expirationDate = new Date((idToken.expiresAt * 1000));
+        console.log('idToken expiresAt: ', expirationDate);
+        this.checkExpired();
+        return true;
+      })
+      .catch(error => {
+        console.log('error: ', error);
+        return this.writeTokens();
+      }
+      );
   }
-  writeTokens() {
-    this.oktaAuth.token.parseFromUrl().then(tokens => { // manage token or tokens 
+  writeTokens(): boolean {
+    return this.oktaAuth.token.parseFromUrl().then(tokens => { // manage token or tokens 
       console.log('tokenOrTokens: ', tokens);
       console.log('token keys', Object.keys(tokens));
       if (tokens.tokens.idToken) {
@@ -54,7 +49,8 @@ export class OktaAuthService implements CanActivate {
         this.oktaAuth.tokenManager.add("accessToken", tokens.tokens.accessToken);
       }
       this.checkLogin();
-    }).catch(error => { this.checkLogin(); });
+      return true;
+    }).catch(error => { this.checkLogin(); return false; });
 
 
   }
@@ -72,10 +68,7 @@ export class OktaAuthService implements CanActivate {
       });
     }
     else {
-      setTimeout(() => {
-        console.log('authenticated: ', authenticated);
-        this.checkExpired();
-      }, 2000)
+      this.checkExpired();
     }
   }
   async checkExpired() {

@@ -1,28 +1,34 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { CallbackComponent} from './callback/callback.component';
 
-import { OktaAuthService} from './okta-auth.service';
+import { OktaAuthService } from './okta-auth.service';
 import { HomeComponent } from './home/home.component';
+import { AboutComponent } from './about/about.component';
 
-const routes: Routes = [{
-  path: '',
-  component: CallbackComponent,
-  canActivate: [OktaAuthService]
-}, {
-  path: 'home',
-  component: HomeComponent,
-  canActivate: [OktaAuthService]
-},
-  {
-    path: '**',
-    redirectTo: '/home', pathMatch: 'full'
-  }
+const routes: Routes = [
+    {
+        path: '',
+        redirectTo: 'home', pathMatch: 'full'
+    }, 
+    {
+        path: 'home',
+        component: HomeComponent,
+        canActivate: [OktaAuthService]
+    },
+    {
+        path: 'about',
+        component: AboutComponent,
+        canActivate: [OktaAuthService]
+    },
+    {
+        path: '**',
+        redirectTo: 'home', pathMatch: 'full'
+    }
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, { useHash: true })],
-  exports: [RouterModule]
+    imports: [RouterModule.forRoot(routes, { useHash: true })],
+    exports: [RouterModule]
 })
 export class AppRoutingModule {
 
